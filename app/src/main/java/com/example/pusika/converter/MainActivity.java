@@ -36,7 +36,6 @@ public class MainActivity extends AppCompatActivity {
     Spinner firstCurrencySpinner;
     Spinner secondCurrencySpinner;
     TextView contentView;
-    String base;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -51,8 +50,7 @@ public class MainActivity extends AppCompatActivity {
         if (hasConnection(this)) {
             contentView.setText("Загрузка данных");
             ProgressTask progressTask = new ProgressTask();
-//            progressTask.execute("http://www.cbr.ru/scripts/XML_daily.asp");
-            progressTask.execute("http://scrum.ucoz.site/");
+            progressTask.execute("http://www.cbr.ru/scripts/XML_daily.asp");
         } else {
             SQLiteOpenHelper dbHelper = new DBHelper(this);
             SQLiteDatabase db = dbHelper.getWritableDatabase();
