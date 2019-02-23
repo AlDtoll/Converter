@@ -36,6 +36,7 @@ public class MainActivity extends AppCompatActivity {
     Spinner firstCurrencySpinner;
     Spinner secondCurrencySpinner;
     TextView contentView;
+    DBHelper dbHelper;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -43,6 +44,7 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
         sumEditText = findViewById(R.id.sumEditText);
         contentView = findViewById(R.id.textView);
+        dbHelper = new DBHelper(this);
         firstCurrencySpinner = findViewById(R.id.firstCurrencySpinner);
         firstCurrencySpinner.setPrompt("Исходная валюта");
         secondCurrencySpinner = findViewById(R.id.secondCurrencySpinner);
@@ -52,11 +54,11 @@ public class MainActivity extends AppCompatActivity {
             ProgressTask progressTask = new ProgressTask();
             progressTask.execute("http://www.cbr.ru/scripts/XML_daily.asp");
         } else {
-            SQLiteOpenHelper dbHelper = new DBHelper(this);
             SQLiteDatabase db = dbHelper.getWritableDatabase();
             Cursor c = db.query("mytable", null, null, null, null, null, null);
             String content;
             String date;
+            String message = "Нет соединения с сетью";
             if (c.moveToFirst()) {
                 int contentColIndex = c.getColumnIndex("content");
                 int dateColIndex = c.getColumnIndex("date");
@@ -64,13 +66,12 @@ public class MainActivity extends AppCompatActivity {
                     content = c.getString(contentColIndex);
                     date = c.getString(dateColIndex);
                     createSpinnersForValutes(content);
-                    String message = "Нет соединения с сетью. Будут использованы данные за " + date;
-                    contentView.setText(message);
+                    message = "Нет соединения с сетью. Будут использованы данные за " + date;
                 } while (c.moveToNext());
             } else {
                 c.close();
             }
-            contentView.setText("Нет соединения с сетью");
+            contentView.setText(message);
         }
     }
 
@@ -102,6 +103,8 @@ public class MainActivity extends AppCompatActivity {
             ContentValues cv = new ContentValues();
             cv.put("content", content);
             cv.put("date", new Date().toString());
+            SQLiteDatabase db = dbHelper.getWritableDatabase();
+            db.insert("mytable", null, cv);
         }
 
         private String getContent(String path) throws IOException {
@@ -185,6 +188,10 @@ public class MainActivity extends AppCompatActivity {
 
         @Override
         public void onCreate(SQLiteDatabase db) {
+            db.execSQL("create table mytable ("
+                    + "id integer primary key autoincrement,"
+                    + "content text,"
+                    + "date Date" + ");");
         }
 
         @Override
